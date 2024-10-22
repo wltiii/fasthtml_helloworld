@@ -1,4 +1,3 @@
-# from python_fasthtml.common import FastHTML, serve
 from fasthtml.common import *
 
 app = FastHTML()
