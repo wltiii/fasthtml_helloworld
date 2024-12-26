@@ -14,13 +14,28 @@ Once you have installed the project along with required dependencies, you can ru
 uvicorn mocks.employee_api:app --reload --port 8000
 ```
 
-After it has started, navigate to http://127.0.0.1:8001/api/records in  your browser. You should see the records in a formatted HTML table.
+After it has started, navigate to http://127.0.0.1:8001/api/records in  your browser. You should a list of records similar to the following.
+
+```text
+0:
+id:	1
+name:	"John Doe"
+email:	"john@example.com"
+role:	"Admin"
+1:
+id:	2
+name:	"Jane Smith"
+email:	"jane@example.com"
+role:	"User"
+```
 
 ### Start the FastHTML app ###
 
 ```bash
 uvicorn main:app --reload --port 8001
 ```
+
+After it has started, navigate to http://127.0.0.1:8001 in  your browser. You should see the HTML UI.
 
 ## Notes on Design
 
