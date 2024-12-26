@@ -4,6 +4,24 @@
 
 This project presents a simple example of using FastHTML. Nothing fancy. I expect to expand upon this with more complex examples in the future.
 
+## Quick Start
+
+Once you have installed the project along with required dependencies, you can run the app by starting the mock database server and the FastHTML app:
+
+### Start the mock database server ###
+
+```bash
+uvicorn mocks.employee_api:app --reload --port 8000
+```
+
+After it has started, navigate to http://127.0.0.1:8001/api/records in  your browser. You should see the records in a formatted HTML table.
+
+### Start the FastHTML app ###
+
+```bash
+uvicorn main:app --reload --port 8001
+```
+
 ## Notes on Design
 
 ### Single-page vs. Multi-page Approach
