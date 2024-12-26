@@ -1,12 +1,18 @@
+from venv import logger
 from fasthtml.common import *
 import httpx
 from urllib.parse import urlencode
+import logging
 
 MOCK_DB_URL = "http://localhost:8000/api"
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app, rt = fast_app()
 
 async def call_mock_db(method, endpoint, json=None, params=None):
+    logger.info(f"call_mock_db(method: {method}, endpoint: {endpoint}, json: {json}, params: {params})")
     async with httpx.AsyncClient() as client:
         response = await client.request(
             method,
@@ -18,19 +24,31 @@ async def call_mock_db(method, endpoint, json=None, params=None):
         return response.json()
 
 def create_add_form():
+    logger.info(f"create_add_form()")
+
     return Form(
-        Input(name="name", placeholder="Enter name", cls="border p-2"),
-        Input(name="email", placeholder="Enter email", cls="border p-2"),
-        Input(name="role", placeholder="Enter role", cls="border p-2"),
-        Button("Add", cls="bg-green-500 text-white p-2"),
+        Td(
+            Input(name="name", placeholder="Enter name", cls="border p-2"),
+        ),
+        Td(
+            Input(name="email", placeholder="Enter email", cls="border p-2"),
+        ),
+        Td(
+            Input(name="role", placeholder="Enter role", cls="border p-2"),
+        ),
+        Td(""),  # Empty cell for last_modified
+        Td(
+            Button("Add", cls="bg-green-500 text-white p-2"),
+        ),
         hx_post="/api/records",
         hx_target="#records-table",
         hx_swap="beforeend"
     )
 
 def create_filter_header(field):
+    logger.info(f"create_filter_header(field: {field})")
+
     return Th(
-        Div(field.title()),
         Input(
             name=f"filter_{field}",
             placeholder=f"Filter {field}...",
@@ -43,6 +61,8 @@ def create_filter_header(field):
     )
 
 def create_record_row(record):
+    logger.info(f"create_record_row({record})")
+
     return Tr(
         Td(
             Div(
@@ -51,7 +71,8 @@ def create_record_row(record):
                 hx_trigger="click",
                 hx_target="closest td",
                 hx_swap="innerHTML"
-            )
+            ),
+            cls="border p-2"
         ),
         Td(
             Div(
@@ -60,7 +81,8 @@ def create_record_row(record):
                 hx_trigger="click",
                 hx_target="closest td",
                 hx_swap="innerHTML"
-            )
+            ),
+            cls="border p-2"
         ),
         Td(
             Div(
@@ -69,8 +91,10 @@ def create_record_row(record):
                 hx_trigger="click",
                 hx_target="closest td",
                 hx_swap="innerHTML"
-            )
+            ),
+            cls="border p-2"
         ),
+        Td(record.get("last_modified", ""), cls="border p-2"),
         Td(
             Button(
                 "Delete",
@@ -78,37 +102,64 @@ def create_record_row(record):
                 hx_delete=f"/api/records/{record['id']}",
                 hx_target="closest tr",
                 hx_swap="outerHTML"
-            )
+            ),
+            cls="border p-2"
         )
     )
-
 @rt("/")
 async def get():
+    logger.info(f"get()")
+
     records = await call_mock_db("GET", "records")
-    return Titled(
-        "Employees - A CRUD Grid Demo",
+
+    return Html(
+        Titled(
+        "Employees - A CRUD Grid Demo"
+        ),
+        Style("""
+            table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th { background-color: #f5f5f5; }
+            tr:hover { background-color: #f9f9f9; }
+        """),
         Container(
-            create_add_form(),
             Table(
                 Thead(
+                    Tr(
+                        Th(H3("Name"), cls="text-left"),
+                        Th(H3("Email"), cls="text-left"),
+                        Th(H3("Role"), cls="text-left"),
+                        Th(H3("Last Modified"), cls="text-left"),
+                        Th(H3("Actions"), cls="text-left"),
+                    ),
+                    Tr(
+                        create_add_form(),
+                    ),
                     Tr(
                         create_filter_header("name"),
                         create_filter_header("email"),
                         create_filter_header("role"),
-                        Th("Actions")
+                        Th(""),  # Empty cell for last_modified
+                        Th("")   # Empty cell for actions
                     )
                 ),
                 Tbody(
                     *[create_record_row(record) for record in records],
                     id="records-table"
                 ),
-                cls="w-full border-collapse"
+                cls="w-full border-collapse table-fixed"
             )
         )
     )
 
 @rt("/api/records")
 async def get(filter_name: str = "", filter_email: str = "", filter_role: str = ""):
+    logger.info(f"get(filter_name: {filter_name}, filter_email: {filter_email}, filter_role: {filter_role})")
+
     # Get all records and filter client-side for demo
     # In production, filtering should be done at database level
     records = await call_mock_db("GET", "records")
@@ -125,17 +176,24 @@ async def get(filter_name: str = "", filter_email: str = "", filter_role: str = 
 
 @rt("/api/records")
 async def post(name: str, email: str, role: str):
+    logger.info(f"post(name: {name}, email: {email}, role: {role})")
+
     record = await call_mock_db("POST", "records", json={"name": name, "email": email, "role": role})
     return create_record_row(record)
 
 @rt("/api/records/{id}")
 async def delete(id: int):
+    logger.info(f"delete(id: {id})")
+
     await call_mock_db("DELETE", f"records/{id}")
     return ""
 
 @rt("/api/records/{id}/edit/{field}")
 async def get(id: int, field: str):
+    logger.info(f"get(id: {id}, field: {field})")
+
     record = await call_mock_db("GET", f"records/{id}")
+
     return Form(
         Input(
             value=record[field],
@@ -150,6 +208,8 @@ async def get(id: int, field: str):
 
 @rt("/api/records/{id}/field/{field}")
 async def put(id: int, field: str, value: str):
+    logger.info(f"put(id: {id}, field: {field}, value: {value})")
+
     record = await call_mock_db("PUT", f"records/{id}", params={"field": field, "value": value})
     return Div(
         record[field],
