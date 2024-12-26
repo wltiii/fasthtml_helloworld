@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project presents a set of simple examples of using FastHTML. Nothing fancy. I expect to expand upon this more complex examples in the future.
+This project presents a simple example of using FastHTML. Nothing fancy. I expect to expand upon this with more complex examples in the future.
 
 ## Notes on Design
 
@@ -34,6 +34,8 @@ There are no technical reasons why you can't or shouldn't in-line your HTML. How
 - Reusability: If you need to reuse a piece of HTML in multiple places, in-lined HTML can make it harder to do so. You might end up duplicating code or creating a separate function to render the HTML.
 
 That being said, if you're comfortable with in-lined HTML and your application is relatively small, it's not a problem. FastAPI is designed to be flexible, and you can use it to return HTML strings in whatever way works best for your project.
+
+## Conclusion
 
 *Remember, it's okay to take things one step at a time and iterate on your design.* You can always refactor or improve your code later.
 
