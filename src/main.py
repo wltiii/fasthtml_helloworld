@@ -86,7 +86,7 @@ def create_record_row(record):
 async def get():
     records = await call_mock_db("GET", "records")
     return Titled(
-        "CRUD Grid Demo",
+        "Employees - A CRUD Grid Demo",
         Container(
             create_add_form(),
             Table(
