@@ -13,6 +13,7 @@ app, rt = fast_app()
 
 async def call_mock_db(method, endpoint, json=None, params=None):
     logger.info(f"call_mock_db(method: {method}, endpoint: {endpoint}, json: {json}, params: {params})")
+
     async with httpx.AsyncClient() as client:
         response = await client.request(
             method,
