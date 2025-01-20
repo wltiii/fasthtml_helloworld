@@ -102,17 +102,9 @@ async def update_record(record_id: int, update_request: UpdateRecordRequest):
 
     logger.info(f"update_record(retrieved record: {record})")
     setattr(record, update_request.field, update_request.value)
-    # setattr(record, "name", update_request.name)
-    # setattr(record, "email", update_request.email)
-    # setattr(record, "role", update_request.role)
 
     logger.info(f"update_record(updated record to: {record})")
-    # return record
-    # I've added hx_trigger="load", hx_get="/api/records",
-    # hx_target="#records-table", and hx_swap="outerHTML"
-    # to the response of the update_record function. This
-    # will trigger a refresh of the records list after a
-    # record is updated.
+
     return {"hx_trigger": "load", "hx_get": "/api/records", "hx_target": "#records-table", "hx_swap": "outerHTML"}
 
 @app.delete("/api/records/{record_id}")
