@@ -4,7 +4,7 @@ import httpx
 from urllib.parse import urlencode
 import logging
 
-MOCK_DB_URL = "http://localhost:8000/api"
+MOCK_EMPLOYEE_API_URL = "http://localhost:8000/api"
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ async def call_mock_db(method, endpoint, json=None, params=None):
     async with httpx.AsyncClient() as client:
         response = await client.request(
             method,
-            f"{MOCK_DB_URL}/{endpoint}",
+            f"{MOCK_EMPLOYEE_API_URL}/{endpoint}",
             json=json,
             params=params
         )
@@ -41,9 +41,28 @@ def create_add_form():
         Td(
             Button("Add", cls="bg-green-500 text-white p-2"),
         ),
+        # hx_get specifies the URL to send a GET request to when the element
+        # is triggered. when the form is submitted, a GET request will be
+        # sent to the /api/records endpoint to retrieve the updated list of records.
+        hx_get="/api/records",
+        # The hx_post parameter specifies the URL where the POST request
+        # is sent when the form is submitted.
         hx_post="/api/records",
+        # hx_swap specifies how to swap the content of the target element
+        # with the response from the server. hx_swap="beforeend" means
+        # that the server response will be inserted before the end of
+        # the #records-table element. This is useful for adding new records
+        # to the table without replacing the existing content.
+        hx_swap="beforeend",
+        # hx_target specifies the CSS selector of the element to
+        # update with the response from the server.
         hx_target="#records-table",
-        hx_swap="beforeend"
+        # hx_trigger identifies the event that triggers the request. it means
+        # the request will be triggered when the form is loaded. However, it is
+        # not the only trigger - the form will also be submitted when
+        # the user clicks the "Add" button, which is the default behavior
+        # for a form.
+        hx_trigger="load"
     )
 
 def create_filter_header(field):
@@ -54,12 +73,13 @@ def create_filter_header(field):
             name=f"filter_{field}",
             placeholder=f"Filter {field}...",
             cls="w-full border p-1 mt-1",
-            hx_trigger="keyup changed delay:500ms",
             hx_get="/api/records",
+            hx_include="[name^='filter_']",
             hx_target="#records-table",
-            hx_include="[name^='filter_']"
+            hx_trigger="keyup changed delay:500ms"
         )
     )
+
 
 def create_record_row(record):
     logger.info(f"create_record_row({record})")
@@ -69,9 +89,9 @@ def create_record_row(record):
             Div(
                 record["name"],
                 hx_get=f"/api/records/{record['id']}/edit/name",
-                hx_trigger="click",
+                hx_swap="innerHTML",
                 hx_target="closest td",
-                hx_swap="innerHTML"
+                hx_trigger="click"
             ),
             cls="border p-2"
         ),
@@ -79,9 +99,9 @@ def create_record_row(record):
             Div(
                 record["email"],
                 hx_get=f"/api/records/{record['id']}/edit/email",
-                hx_trigger="click",
+                hx_swap="innerHTML",
                 hx_target="closest td",
-                hx_swap="innerHTML"
+                hx_trigger="click"
             ),
             cls="border p-2"
         ),
@@ -89,20 +109,27 @@ def create_record_row(record):
             Div(
                 record["role"],
                 hx_get=f"/api/records/{record['id']}/edit/role",
-                hx_trigger="click",
+                hx_swap="innerHTML",
                 hx_target="closest td",
-                hx_swap="innerHTML"
+                hx_trigger="click"
             ),
             cls="border p-2"
         ),
         Td(record.get("last_modified", ""), cls="border p-2"),
         Td(
+            # I've also added hx_trigger="load" and
+            # hx_get="/api/records" to the delete button in
+            # the create_record_row function. This will trigger
+            # a refresh of the records list after a record is
+            # deleted.
             Button(
                 "Delete",
                 cls="bg-red-500 text-white p-2",
                 hx_delete=f"/api/records/{record['id']}",
-                hx_target="closest tr",
-                hx_swap="outerHTML"
+                hx_get="/api/records",
+                hx_swap="outerHTML",
+                hx_target="#records-table",
+                hx_trigger="load"
             ),
             cls="border p-2"
         )
@@ -203,8 +230,8 @@ async def get(id: int, field: str):
         ),
         Button("Save", cls="bg-green-500 text-white p-1"),
         hx_put=f"/api/records/{id}/field/{field}",
-        hx_target="closest td",
-        hx_swap="innerHTML"
+        hx_swap="innerHTML",
+        hx_target="closest td"
     )
 
 @rt("/api/records/{id}/field/{field}")
@@ -215,9 +242,9 @@ async def put(id: int, field: str, value: str):
     return Div(
         record[field],
         hx_get=f"/api/records/{id}/edit/{field}",
-        hx_trigger="click",
+        hx_swap="innerHTML",
         hx_target="closest td",
-        hx_swap="innerHTML"
+        hx_trigger="click"
     )
 
 if __name__ == "__main__":
