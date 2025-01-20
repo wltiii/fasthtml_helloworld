@@ -42,12 +42,19 @@ def test_create_record():
     assert response.status_code == 200
     assert response.json()["id"] > 3
     assert response.json()["id"] == 4
+    # Did we actually update the mock database?
+    # result = client.get("/api/records")
+    # assert result.status_code == 200
+    # assert len(result.json()) == 4
+    # print("result.json():", result.json())
 
-# def test_update_record():
-#     data = {"field": "name", "value": "Updated Name"}
-#     response = client.put("/api/records/1", json=data)
-#     assert response.status_code == 200
-#     assert response.json()["name"] == "Updated Name"
+def test_update_record():
+    data = {"name": "Updated name", "email": "Updated email", "role": "Updated role"}
+    response = client.put("/api/records/1", json=data)
+    assert response.status_code == 200
+    assert response.json()["name"] == "Updated name"
+    assert response.json()["email"] == "Updated email"
+    assert response.json()["role"] == "Updated role"
 
 def test_delete_record():
     response = client.delete("/api/records/1")

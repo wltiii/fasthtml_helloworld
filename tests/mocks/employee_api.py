@@ -15,6 +15,11 @@ class Record(BaseModel):
     email: str
     role: str
 
+class UpdateRecordRequest(BaseModel):
+    name: str
+    email: str
+    role: str
+
 mock_database = {
     1: Record(id=1, name="John Doe", email="john@example.com", role="Admin"),
     2: Record(id=2, name="Jane Smith", email="jane@example.com", role="User"),
@@ -60,8 +65,7 @@ def filter_records(records,
 async def get_records(
     name: str = Query(None, description="Filter by name"),
     email: str = Query(None, description="Filter by email"),
-    role: str = Query(None, description="Filter by role")
-):
+    role: str = Query(None, description="Filter by role")):
     logger.info(f"get_records(name: {name}, email: {email}, role: {role})")
 
     if name or email or role:
@@ -89,12 +93,27 @@ async def create_record(record: Record):
     return record
 
 @app.put("/api/records/{record_id}", response_model=Record)
-async def update_record(record_id: int, field: str, value: str):
+async def update_record(record_id: int, update_request: UpdateRecordRequest):
+    logger.info(f"update_record(record_id: {record_id}, name: {update_request.name}, email: {update_request.email}, role: {update_request.role})")
+
     if record_id not in mock_database:
         raise HTTPException(status_code=404, detail="Record not found")
     record = mock_database[record_id]
-    setattr(record, field, value)
-    return record
+
+    logger.info(f"update_record(retrieved record: {record})")
+    setattr(record, update_request.field, update_request.value)
+    # setattr(record, "name", update_request.name)
+    # setattr(record, "email", update_request.email)
+    # setattr(record, "role", update_request.role)
+
+    logger.info(f"update_record(updated record to: {record})")
+    # return record
+    # I've added hx_trigger="load", hx_get="/api/records",
+    # hx_target="#records-table", and hx_swap="outerHTML"
+    # to the response of the update_record function. This
+    # will trigger a refresh of the records list after a
+    # record is updated.
+    return {"hx_trigger": "load", "hx_get": "/api/records", "hx_target": "#records-table", "hx_swap": "outerHTML"}
 
 @app.delete("/api/records/{record_id}")
 async def delete_record(record_id: int):
